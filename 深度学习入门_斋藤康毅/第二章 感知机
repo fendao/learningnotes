@@ -1,0 +1,478 @@
+```python
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+import pandas as pd
+```
+
+
+```python
+def AND(x1, x2):
+    w1, w2, theta = 0.5, 0.5, 0.7
+    tmp = x1*w1 + x2*w2
+    if tmp <= theta:
+        return 0
+    elif tmp > theta:
+        return 1
+def NAND(x1, x2):
+    w1, w2, theta = -0.5, -0.5, -0.7
+    tmp = x1*w1 + x2*w2
+    if tmp <= theta:
+        return 0
+    elif tmp > theta:
+        return 1
+def OR(x1, x2):
+    w1, w2, theta = 0.5, 0.5, 0.3
+    tmp = x1*w1 + x2*w2
+    if tmp <= theta:
+        return 0
+    elif tmp > theta:
+        return 1
+```
+
+
+```python
+print(AND(0,0))
+print(AND(1,0))
+print(AND(0,1))
+print(AND(1,1))
+```
+
+    0
+    0
+    0
+    1
+
+
+
+```python
+print(NAND(0,0))
+print(NAND(1,0))
+print(NAND(0,1))
+print(NAND(1,1))
+```
+
+    1
+    1
+    1
+    0
+
+
+
+```python
+print(OR(0,0))
+print(OR(1,0))
+print(OR(0,1))
+print(OR(1,1))
+```
+
+    0
+    1
+    1
+    1
+
+
+
+```python
+def get_and(x1, x2):
+    x = np.array([x1, x2])
+    w = np.array([0.5, 0.5])
+    b = -0.7
+    tmp = np.sum(w*x) + b
+    if tmp <= 0:
+        return 0
+    else:
+        return 1
+def get_nand(x1, x2):
+    x = np.array([x1, x2])
+    w = np.array([-0.5, -0.5])
+    b = 0.7
+    tmp = np.sum(w*x) + b
+    if tmp <=0:
+        return 0
+    else:
+        return 1
+def get_or(x1, x2):
+    x = np.array([x1, x2])
+    w = np.array([0.5, 0.5])
+    b = -0.3
+    tmp = np.sum(w*x) + b
+    if tmp <= 0:
+        return 0
+    else:
+        return 1
+```
+
+
+```python
+print(get_and(0,0))
+print(get_and(1,0))
+print(get_and(0,1))
+print(get_and(1,1))
+```
+
+    0
+    0
+    0
+    1
+
+
+
+```python
+print(get_nand(0,0))
+print(get_nand(1,0))
+print(get_nand(0,1))
+print(get_nand(1,1))
+```
+
+    1
+    1
+    1
+    0
+
+
+
+```python
+print(get_or(0,0))
+print(get_or(1,0))
+print(get_or(0,1))
+print(get_or(1,1))
+```
+
+    0
+    1
+    1
+    1
+
+
+
+```python
+def XOR(x1, x2):
+    s1 = get_nand(x1, x2)
+    s2 = get_or(x1, x2)
+    y = get_and(s1, s2)
+    return y
+```
+
+
+```python
+print(XOR(0,0))
+print(XOR(1,0))
+print(XOR(0,1))
+print(XOR(1,1))
+```
+
+    0
+    1
+    1
+    0
+
+
+# 第3章 激活函数
+
+
+```python
+def step_function(x):
+    return np.array(x>0, dtype=np.int32)
+```
+
+
+```python
+x = np.arange(-5.0, 5.0, 0.1)
+y = step_function(x)
+plt.plot(x, y)
+plt.ylim(-0.1, 1.1)
+plt.show()
+```
+
+
+    
+[外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传(img-VO2gg8NF-1656920881571)(output_13_0.png)]
+    
+
+
+
+```python
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+```
+
+
+```python
+x = np.arange(-5.0, 5, 0.1)
+y = sigmoid(x)
+y2 = step_function(x)
+plt.plot(x, y)
+plt.plot(x, y2, 'k--')
+plt.ylim(-0.1, 1.1)
+plt.show()
+```
+
+
+ 
+
+![](https://img-blog.csdnimg.cn/b254cee347e744eb945d39001cae1025.png#pic_center)
+
+
+
+
+```python
+def relu(x):
+    return np.maximum(0, x)
+```
+
+
+```python
+x = np.arange(-5.0, 5.0, 0.1)
+y = relu(x)
+plt.plot(x, y, 'lightsteelblue')
+plt.ylim(-1, 6.)
+plt.show()
+```
+
+
+    
+![](https://img-blog.csdnimg.cn/d001b22510e445be938460408cefb1f7.png#pic_center)
+
+    
+
+
+
+```python
+X = np.array([1.0, 0.5])
+W1 = np.array([[0.1, 0.3, 0.5], [0.2, 0.4, 0.6]])
+B1 = np.array([0.1, 0.2, 0.3])
+print(X.shape)
+print(W1.shape)
+print(B1.shape)
+```
+
+    (2,)
+    (2, 3)
+    (3,)
+
+
+
+```python
+A1 = np.dot(X, W1) + B1
+```
+
+
+```python
+Z1 = sigmoid(A1)
+```
+
+
+```python
+print(A1)
+print(Z1)
+```
+
+    [0.3 0.7 1.1]
+    [0.57444252 0.66818777 0.75026011]
+
+
+
+```python
+W2 = np.array([[0.1, 0.4], [0.2, 0.5], [0.3, 0.6]])
+B2 = np.array([0.1, 0.2])
+```
+
+
+```python
+A2 = np.dot(Z1, W2) + B2
+```
+
+
+```python
+Z2 = sigmoid(A2)
+print(A2)
+print(Z2)
+```
+
+    [0.51615984 1.21402696]
+    [0.62624937 0.7710107 ]
+
+
+
+```python
+def identity_function(x):
+    return x
+W3 = np.array([[0.1, 0.3], [0.2, 0.4]])
+B3 = np.array([0.1, 0.2])
+A3 = np.dot(Z2, W3) + B3
+Y = identity_function(A3)
+```
+
+
+```python
+def init_network():
+    network = {}
+    network['W1'] = np.array([[0.1, 0.3, 0.5], [0.2, 0.4, 0.6]])
+    network['b1'] = np.array([0.1, 0.2, 0.3])
+    network['W2'] = np.array([[0.1, 0.4], [0.2, 0.5], [0.3, 0.6]])
+    network['b2'] = np.array([0.1, 0.2])
+    network['W3'] = np.array([[0.1, 0.3], [0.2, 0.4]])
+    network['b3'] = np.array([0.1, 0.2])
+    return network
+def forward(network, x):
+    W1, W2, W3 = network['W1'], network['W2'], network['W3']
+    b1, b2, b3 = network['b1'], network['b2'], network['b3']
+    a1 = np.dot(x, W1) + b1
+    z1 = sigmoid(a1)
+    a2 = np.dot(z1, W2) + b2
+    z2 = sigmoid(a2)
+    a3 = np.dot(z2, W3) + b3
+    y = identity_function(a3)
+    return y
+```
+
+
+```python
+network = init_network()
+x = np.array([1.0, 0.5])
+y = forward(network, x)
+print(y)
+```
+
+    [0.31682708 0.69627909]
+
+
+
+```python
+def softmax(a):
+    c = np.max(a)
+    exp_a = np.exp(a-c)
+    sum_exp_a = np.sum(exp_a)
+    y = exp_a / sum_exp_a
+    return y
+```
+
+
+```python
+a = np.array([0.3, 2.9, 4.0])
+y = softmax(a)
+print(y)
+```
+
+    [0.01821127 0.24519181 0.73659691]
+
+
+
+```python
+np.sum(y)
+```
+
+
+
+
+    1.0
+
+
+
+
+```python
+import sys, os
+sys.path.append(os.pardir)
+from dataset.mnist import load_mnist
+from PIL import Image
+```
+
+
+```python
+def img_show(img):
+    pil_img = Image.fromarray(np.uint8(img))
+    pil_img.show()
+```
+
+
+```python
+(x_train, t_train), (x_test, t_test) = load_mnist(flatten=True, normalize=False)
+print(t_train[0])
+img_show(x_train[0].reshape(28, 28))
+```
+
+    5
+
+
+
+```python
+plt.imshow(x_train[10].reshape(28,28))
+plt.show()
+```
+
+
+    
+![](https://img-blog.csdnimg.cn/14f081f748864d4e9b41ae3cc7135d7b.png#pic_center)
+
+    
+
+
+
+```python
+import pickle
+def get_data():
+    (x_train, t_train), (x_test, t_test) = \
+        load_mnist(normalize=True, flatten=True, one_hot_label=False)
+    return x_test, t_test
+def init_network():
+    with open('sample_weight.pkl', 'rb') as f:
+        network = pickle.load(f)
+    return network
+def predict(network, x):
+    W1, W2, W3 = network['W1'], network['W2'], network['W3']
+    b1, b2, b3 = network['b1'], network['b2'], network['b3']
+    a1 = np.dot(x, W1) + b1
+    z1 = sigmoid(a1)
+    a2 = np.dot(z1, W2) + b2
+    z2 = sigmoid(a2)
+    a3 = np.dot(z2, W3) + b3
+    y = softmax(a3)
+    return y
+```
+
+
+```python
+x, t = get_data()
+network = init_network()
+accuracy_cnt = 0
+for i in range(len(x)):
+    y = predict(network, x[i])
+    p = np.argmax(y)
+    if p==t[i]:
+        accuracy_cnt += 1
+print('Accuracy:'+ str(float(accuracy_cnt)/ len(x)))
+```
+
+    Accuracy:0.9352
+
+
+
+```python
+x, t = get_data()
+network = init_network()
+batch_size = 100
+accuracy_cnt = 0
+for i in range(0, len(x), batch_size):
+    x_batch = x[i:i+batch_size]
+    y_batch = predict(network, x_batch)
+    p = np.argmax(y_batch, axis=1)
+    accuracy_cnt += np.sum(p==t[i:i+batch_size])
+print('Accuracy:'+ str(float(accuracy_cnt)/len(x)))
+```
+
+    Accuracy:0.9352
+
+
+
+```python
+np.array([[2,3],[3,4],[2,4]])
+```
+
+
+
+
+    array([[2, 3],
+           [3, 4],
+           [2, 4]])
+
