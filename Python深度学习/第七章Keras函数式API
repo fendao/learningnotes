@@ -1,0 +1,422 @@
+```python
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import matplotlib as mpl
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']
+```
+
+# 介绍
+
+
+```python
+from keras import layers, Input
+input_tensor = Input(shape=(32,))
+dense = layers.Dense(32, activation='relu')
+output_tensor = dense(input_tensor)
+```
+
+
+```python
+from keras.models import Sequential, Model
+from keras import layers
+from keras import Input
+seq_model = Sequential()
+seq_model.add(layers.Dense(32, activation='relu', input_shape=(64,)))
+seq_model.add(layers.Dense(32, activation='relu'))
+seq_model.add(layers.Dense(10, activation='softmax'))
+
+input_tensor = Input(shape=(64,))
+x = layers.Dense(32, activation='relu')(input_tensor)
+x = layers.Dense(32, activation='relu')(x)
+output_tensor = layers.Dense(10, activation='softmax')(x)
+
+model = Model(input_tensor, output_tensor)
+model.summary()
+```
+
+    Model: "model"
+    _________________________________________________________________
+     Layer (type)                Output Shape              Param #   
+    =================================================================
+     input_3 (InputLayer)        [(None, 64)]              0         
+                                                                     
+     dense_8 (Dense)             (None, 32)                2080      
+                                                                     
+     dense_9 (Dense)             (None, 32)                1056      
+                                                                     
+     dense_10 (Dense)            (None, 10)                330       
+                                                                     
+    =================================================================
+    Total params: 3,466
+    Trainable params: 3,466
+    Non-trainable params: 0
+    _________________________________________________________________
+
+
+
+```python
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+x_train = np.random.random((1000, 64))
+y_train = np.random.random((1000, 10))
+x_test = np.random.random((1000,64))
+y_test = np.random.random((1000,10))
+model.fit(x_train, y_train, epochs=10, batch_size=128)
+score = model.evaluate(x_test, y_test)
+```
+
+    Epoch 1/10
+    8/8 [==============================] - 0s 486us/step - loss: 11.6786
+    Epoch 2/10
+    8/8 [==============================] - 0s 446us/step - loss: 12.3014
+    Epoch 3/10
+    8/8 [==============================] - 0s 481us/step - loss: 12.7770
+    Epoch 4/10
+    8/8 [==============================] - 0s 581us/step - loss: 13.3624
+    Epoch 5/10
+    8/8 [==============================] - 0s 626us/step - loss: 14.0788
+    Epoch 6/10
+    8/8 [==============================] - 0s 523us/step - loss: 15.1283
+    Epoch 7/10
+    8/8 [==============================] - 0s 474us/step - loss: 16.5600
+    Epoch 8/10
+    8/8 [==============================] - 0s 552us/step - loss: 18.4287
+    Epoch 9/10
+    8/8 [==============================] - 0s 510us/step - loss: 20.5312
+    Epoch 10/10
+    8/8 [==============================] - 0s 471us/step - loss: 22.8406
+    32/32 [==============================] - 0s 320us/step - loss: 24.7732
+
+
+
+```python
+score
+```
+
+
+
+
+    24.773183822631836
+
+
+
+## 双输入问答
+
+
+```python
+from keras.models import Model
+from keras import layers
+from keras import Input
+# 10000个最常见词
+text_vocabulary_size = 10000
+question_vocabulary_size = 10000
+answer_vocabulary_size = 500
+
+text_input = Input(shape=(None,), dtype='int32', name='text')
+# 输入嵌入成特征64
+embedded_text = layers.Embedding(text_vocabulary_size, 64)(text_input)
+encoded_text = layers.LSTM(32)(embedded_text)
+
+question_input = Input(shape=(None,), dtype='int32', name='question')
+embedded_question = layers.Embedding(question_vocabulary_size, 32)(question_input)
+encoded_question = layers.LSTM(16)(embedded_question)
+
+concatenated = layers.concatenate([encoded_text, encoded_question], axis=-1)
+
+answer = layers.Dense(answer_vocabulary_size, activation='softmax')(concatenated)
+
+model = Model([text_input, question_input], answer)
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
+```
+
+
+```python
+import keras, tensorflow
+num_samples = 1000
+max_length = 10
+# 文本量与截断量。1000行10列[1,10000)
+text = np.random.randint(1, text_vocabulary_size, size=(num_samples, max_length))
+question = np.random.randint(1, question_vocabulary_size, size=(num_samples, max_length))
+answers = np.random.randint(answer_vocabulary_size, size=(num_samples))
+answers = tensorflow.keras.utils.to_categorical(answers, answer_vocabulary_size)
+
+model.fit([text, question], answers, epochs=10, batch_size=128)
+model.fit({'text':text, 'question':question}, answers, epochs=10, batch_size=128)
+```
+
+    Epoch 1/10
+    8/8 [==============================] - 1s 6ms/step - loss: 6.2145 - acc: 0.0000e+00
+    Epoch 2/10
+    8/8 [==============================] - 0s 6ms/step - loss: 6.1980 - acc: 0.0370
+    Epoch 3/10
+    8/8 [==============================] - 0s 7ms/step - loss: 6.1746 - acc: 0.0390
+    Epoch 4/10
+    8/8 [==============================] - 0s 7ms/step - loss: 6.1206 - acc: 0.0170
+    Epoch 5/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.9894 - acc: 0.0060
+    Epoch 6/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.8632 - acc: 0.0060
+    Epoch 7/10
+    8/8 [==============================] - 0s 6ms/step - loss: 5.7513 - acc: 0.0060
+    Epoch 8/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.6488 - acc: 0.0090
+    Epoch 9/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.5495 - acc: 0.0260
+    Epoch 10/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.4521 - acc: 0.0240
+    Epoch 1/10
+    8/8 [==============================] - 1s 6ms/step - loss: 5.3547 - acc: 0.0350
+    Epoch 2/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.2586 - acc: 0.0370
+    Epoch 3/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.1640 - acc: 0.0530
+    Epoch 4/10
+    8/8 [==============================] - 0s 7ms/step - loss: 5.0749 - acc: 0.0700
+    Epoch 5/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.9886 - acc: 0.0800
+    Epoch 6/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.9034 - acc: 0.0830
+    Epoch 7/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.8206 - acc: 0.1130
+    Epoch 8/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.7368 - acc: 0.1260
+    Epoch 9/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.6566 - acc: 0.1480
+    Epoch 10/10
+    8/8 [==============================] - 0s 7ms/step - loss: 4.5740 - acc: 0.1670
+
+
+
+
+
+    <keras.callbacks.History at 0x2804b5ea0>
+
+
+
+## 多输出模型
+
+
+```python
+vocabulary_size= 50000
+num_income_groups = 10
+
+posts_input = Input(shape=(None,), dtype='int32', name='posts')
+embedded_posts = layers.Embedding(vocabulary_size, 256)(posts_input)
+x = layers.Conv1D(128, 5, activation='relu')(embedded_posts)
+x = layers.MaxPooling1D(5)(x)
+x = layers.Conv1D(256, 5, activation='relu')(x)
+x = layers.Conv1D(256, 5, activation='relu')(x)
+x = layers.MaxPooling1D(5)(x)
+x = layers.Conv1D(256, 5, activation='relu')(x)
+x = layers.Conv1D(256, 5, activation='relu')(x)
+x = layers.GlobalMaxPooling1D()(x)
+x = layers.Dense(128, activation='relu')(x)
+
+age_prediction = layers.Dense(1, name='age')(x)
+income_prediction = layers.Dense(num_income_groups, activation='softmax', name='income')(x)
+gender_prediction = layers.Dense(1, activation='sigmoid', name='gender')(x)
+model = Model(posts_input, [age_prediction, income_prediction, gender_prediction])
+```
+
+
+```python
+model.summary()
+```
+
+    Model: "model_2"
+    __________________________________________________________________________________________________
+     Layer (type)                   Output Shape         Param #     Connected to                     
+    ==================================================================================================
+     posts (InputLayer)             [(None, None)]       0           []                               
+                                                                                                      
+     embedding_4 (Embedding)        (None, None, 256)    12800000    ['posts[0][0]']                  
+                                                                                                      
+     conv1d_3 (Conv1D)              (None, None, 128)    163968      ['embedding_4[0][0]']            
+                                                                                                      
+     max_pooling1d_1 (MaxPooling1D)  (None, None, 128)   0           ['conv1d_3[0][0]']               
+                                                                                                      
+     conv1d_4 (Conv1D)              (None, None, 256)    164096      ['max_pooling1d_1[0][0]']        
+                                                                                                      
+     conv1d_5 (Conv1D)              (None, None, 256)    327936      ['conv1d_4[0][0]']               
+                                                                                                      
+     max_pooling1d_2 (MaxPooling1D)  (None, None, 256)   0           ['conv1d_5[0][0]']               
+                                                                                                      
+     conv1d_6 (Conv1D)              (None, None, 256)    327936      ['max_pooling1d_2[0][0]']        
+                                                                                                      
+     conv1d_7 (Conv1D)              (None, None, 256)    327936      ['conv1d_6[0][0]']               
+                                                                                                      
+     global_max_pooling1d (GlobalMa  (None, 256)         0           ['conv1d_7[0][0]']               
+     xPooling1D)                                                                                      
+                                                                                                      
+     dense_12 (Dense)               (None, 128)          32896       ['global_max_pooling1d[0][0]']   
+                                                                                                      
+     age (Dense)                    (None, 1)            129         ['dense_12[0][0]']               
+                                                                                                      
+     income (Dense)                 (None, 10)           1290        ['dense_12[0][0]']               
+                                                                                                      
+     gender (Dense)                 (None, 1)            129         ['dense_12[0][0]']               
+                                                                                                      
+    ==================================================================================================
+    Total params: 14,146,316
+    Trainable params: 14,146,316
+    Non-trainable params: 0
+    __________________________________________________________________________________________________
+
+
+
+```python
+model.compile(optimizer='rmsprop', loss=['mse', 'categorical_crossentropy', 'binary_crossentropy'])
+model.compile(optimizer='rmsprop',
+             loss={'age':'mse',
+                  'income':'categorical_crossentropy',
+                  'gender':'binary_crossentropy'})
+```
+
+
+```python
+model.compile(optimizer='rmsprop',
+             loss=['mae', 'categorical_crossentropy', 'binary_crossentropy'],
+             loss_weights=[0.25, 1., 10.])
+model.compile(optimizer='rmsprop',
+             loss={'age':'mse',
+                  'income':'categorical_crossentropy',
+                  'gender':'binary_crossentropy'},
+             loss_weights={'age':0.25,
+                          'income':1.,
+                          'gender':10.})
+```
+
+
+```python
+model.fit(posts, [age_targets, income_targets, gender_targets], epochs=10, batch_size=64)
+model.fit(posts,
+         {'age':age_targets,
+         'income':income_targets,
+         'gender':gender_targets},
+         epochs=10, batch_size=64)
+```
+
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    Input In [31], in <cell line: 1>()
+    ----> 1 model.fit(posts, [age_targets, income_targets, gender_targets], epochs=10, batch_size=64)
+          2 model.fit(posts,
+          3          {'age':age_targets,
+          4          'income':income_targets,
+          5          'gender':gender_targets},
+          6          epochs=10, batch_size=64)
+
+
+    NameError: name 'posts' is not defined
+
+
+## Inception模块+残差连接
+
+
+```python
+from keras import layers
+branch_a = layers.Conv2D(128, 1, activation='relu', strides=2)(x)
+branch_b = layers.Conv2D(128, 1, activation='relu')(x)
+branch_b = layers.Conv2D(128, 3, activation='relu', strides=2)(branch_b)
+branch_c = layers.AveragePooling2D(3, strides=2)(x)
+branch_c = layers.Conv2D(128, 3, activation='relu')(branch_c)
+branch_d = layers.Conv2D(128, 1, activation='relu')(x)
+branch_d = layers.Conv2D(128, 3, activation='relu')(branch_d)
+branch_d = layers.Conv2D(128, 3, activation='relu', strides=2)(branch_d)
+output = layers.concatenate([branch_a, branch_b, branch_c, branch_d], axis=-1)
+```
+
+
+    ---------------------------------------------------------------------------
+
+    ValueError                                Traceback (most recent call last)
+
+    Input In [37], in <cell line: 2>()
+          1 from keras import layers
+    ----> 2 branch_a = layers.Conv2D(128, 1, activation='relu', strides=2)(x)
+          3 branch_b = layers.Conv2D(128, 1, activation='relu')(x)
+          4 branch_b = layers.Conv2D(128, 3, activation='relu', strides=2)(branch_b)
+
+
+    File ~/miniforge3/envs/dl/lib/python3.10/site-packages/keras/utils/traceback_utils.py:67, in filter_traceback.<locals>.error_handler(*args, **kwargs)
+         65 except Exception as e:  # pylint: disable=broad-except
+         66   filtered_tb = _process_traceback_frames(e.__traceback__)
+    ---> 67   raise e.with_traceback(filtered_tb) from None
+         68 finally:
+         69   del filtered_tb
+
+
+    File ~/miniforge3/envs/dl/lib/python3.10/site-packages/keras/engine/input_spec.py:228, in assert_input_compatibility(input_spec, inputs, layer_name)
+        226   ndim = x.shape.rank
+        227   if ndim is not None and ndim < spec.min_ndim:
+    --> 228     raise ValueError(f'Input {input_index} of layer "{layer_name}" '
+        229                      'is incompatible with the layer: '
+        230                      f'expected min_ndim={spec.min_ndim}, '
+        231                      f'found ndim={ndim}. '
+        232                      f'Full shape received: {tuple(shape)}')
+        233 # Check dtype.
+        234 if spec.dtype is not None:
+
+
+    ValueError: Input 0 of layer "conv2d_7" is incompatible with the layer: expected min_ndim=4, found ndim=2. Full shape received: (None, 128)
+
+
+
+```python
+from keras import layers
+x = np.random.randint(0, 100, size=(100,128,100,10000))
+y = layers.Conv2D(128, 3, activation='relu', padding='same')(x)
+y = layers.Conv2D(128, 3, activation='relu', padding='same')(y)
+y = layers.Conv2D(128, 3, activation='relu', padding='same')(y)
+y = layers.add([y, x])
+```
+
+
+```python
+y = layers.Conv2D(128, 3, activation='relu', padding='same')(x)
+y = layers.Conv2D(128, 3, activation='relu', padding='same')(y)
+y = layers.MaxPooling2D(2, strides=2)(y)
+residual = layers.Conv2D(128, 1, strides=2, padding='same')(x)
+y = layers.add([y, residual])
+```
+
+### 重复使用层权重
+
+
+```python
+from keras import layers
+from keras import Input
+from keras.models import Model
+lstm = layers.LSTM(32)
+left_input = Input(shape=(None, 128))
+left_output = lstm(left_input)
+
+right_input = Input(shape=(None, 128))
+right_output = lstm(right_input)
+
+merged = layers.concatenate([left_output, right_output], axis=-1)
+predictions = layers.Dense(1, activation='sigmoid')(megred)
+
+model = Model([left_input, right_input], predictions)
+model.fit([left_data, right_data], targets)
+```
+
+### 重复使用模型权重
+
+
+```python
+from keras import layers
+from keras import applications
+from keras import Input
+xception_base = applications.Xception(weights=None, include_top=False)
+left_input = Input(shape=(250, 250, 3))
+right_input = Input(shape=(250, 250, 3))
+
+left_features = xception_base(left_input)
+right_features = xception_base(right_input)
+
+merged_features = layers.concatenate([left_features, right_features], axis=-1)
+```
